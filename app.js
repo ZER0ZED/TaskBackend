@@ -10,10 +10,7 @@ var logger = require('morgan');
 
 var app = express();
 app.use(cors());
-const PORT = process.env.PORT || 3001; // Change 3000 to another available port
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Remove duplicate server initialization - server is created in bin/www
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -24,10 +21,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
-//35.210.104.180
-// user: "mms"
-// pwd: "MmS_esenkoy"
-// db: "MMSDB"
+// Initialize database models for Kanban board
+const initializeKanban = require('./db/initializeKanban');
+
+// Log server initialization for better monitoring and debugging
+console.log('Marine Management System backend initializing - ' + new Date().toISOString());
+
+// Call initialization asynchronously - will create data if needed
+initializeKanban().catch(err => {
+  console.error('Failed to initialize Kanban data:', err);
+});
 
 app.use('/api', require('./routes/index'));
 
