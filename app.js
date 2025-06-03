@@ -15,7 +15,17 @@ app.use(cors());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-app.use(logger('dev'));
+// Custom middleware to handle all requests
+app.use(function(req, res, next) {
+  // Skip document API requests completely from logging
+  if (!(req.method === 'GET' && req.originalUrl.startsWith('/api/documents'))) {
+    // Only log non-document API requests
+    logger('dev')(req, res, next);
+  } else {
+    // Just proceed without logging for document requests
+    next();
+  }
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
