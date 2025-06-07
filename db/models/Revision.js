@@ -15,6 +15,7 @@ const RevisionSchema = new Schema({
     type: Number,
     required: true
   },
+  // Path to stored file
   filePath: {
     type: String,
     required: true
@@ -31,6 +32,7 @@ const RevisionSchema = new Schema({
     type: Number,
     required: true
   },
+
   description: {
     type: String,
     trim: true
@@ -45,6 +47,7 @@ const RevisionSchema = new Schema({
     default: Date.now
   }
 }, { timestamps: true });
+
 
 // Compound index to ensure document + revisionNo uniqueness
 RevisionSchema.index({ documentId: 1, revisionNo: 1 }, { unique: true });

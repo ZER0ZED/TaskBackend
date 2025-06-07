@@ -3,12 +3,14 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
+
+// Import models
 const Document = require('../db/models/Document');
 const Revision = require('../db/models/Revision');
 const Remark = require('../db/models/Remark');
-const mongoose = require('mongoose');
 
-// Configure multer for file storage
+// Configure storage for multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // Create directory if it doesn't exist
@@ -96,7 +98,7 @@ router.post('/', upload.single('file'), async (req, res) => {
     // Save document
     const savedDocument = await newDocument.save();
 
-    // Create first revision
+    // Create first revision with file path
     const newRevision = new Revision({
       documentId: savedDocument._id,
       revisionNo: revisionNo || 0,
@@ -525,6 +527,33 @@ router.get('/summary/projects', async (req, res) => {
     res.json(projectSummary);
   } catch (error) {
     console.error('Error generating project summary:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * @route   GET /api/documents/file/:filePath
+ * @desc    Download a file from filesystem by its path
+ * @access  Private
+ */
+router.get('/file/:filePath', async (req, res) => {
+  try {
+    const filePath = req.params.filePath;
+    
+    // Set appropriate headers
+    res.set('Content-Type', 'application/octet-stream');
+    res.set('Content-Disposition', `attachment; filename="${filePath.split('/').pop()}"`);
+    
+    // Stream file to response
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+    
+    // Handle errors
+    fileStream.on('error', () => {
+      res.status(404).json({ message: 'File not found' });
+    });
+  } catch (error) {
+    console.error('Error downloading file:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
